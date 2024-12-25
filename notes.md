@@ -138,7 +138,17 @@ vib / vif / vii - block selection
 <leader>sna - show all errors
 <leader>cl - show lsp errors
 \\ - live grep
+<leader>ca - show code actions
+ge - show errors under cursor
+<leader>xx - show all diagnostics
+s - search without moving
+:messages - read vim output
+:checkhealth - read health of lazyvim
+<leader>l - read health of lazyvim
+:LazyExtra - read health of extras
+:Mason - read health of lsps
 ```
+
 
 
 
