@@ -121,6 +121,30 @@ o - show commit (highlight multiple commits to diff in range)
 O - open in new tab
 gb - git browse
 . - to start command-line with :Git [CURSOR] SHA à la fugitive
+
+Lazyvim
+\\ - live grep
+<leader>ca - show code actions
+ge - show errors under cursor
+<leader>xx - show all diagnostics
+s - search without moving
+:messages - read vim output
+:checkhealth - read health of lazyvim
+<leader>l - read health of lazyvim
+:LazyExtra - read health of extras
+:Mason - read health of lsps
+
+https://github.com/lewis6991/gitsigns.nvim
+<leader>hp - preview hunk
+<leader>hs - toggle stage hunk
+<leader>hd - diff
+<leader>td - toggle deleted diff
+<leader>hb - show blame on line
+
+
+
+grugfar
+<leader>sr - grug far search and replace
 ```
 
 ## 12/24/2024 practice
@@ -147,6 +171,12 @@ s - search without moving
 <leader>l - read health of lazyvim
 :LazyExtra - read health of extras
 :Mason - read health of lsps
+<leader>hp - preview hunk
+<leader>hs - toggle stage hunk
+<leader>hd - diff
+<leader>td - toggle deleted diff
+<leader>hb - show blame on line
+<leader>sr - grug far search and replace
 ```
 
 

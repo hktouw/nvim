@@ -14,7 +14,9 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({
+local lazy = require("lazy")
+
+lazy.setup({
   spec = {
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
     -- { import = "lazyvim.plugins.extras.coding.copilot" },
@@ -30,7 +32,7 @@ require("lazy").setup({
     { "folke/flash.nvim", enabled = false },
     { "echasnovski/mini.pairs", enabled = false },
     { "akinsho/bufferline.nvim", enabled = false },
-    { "Saghen/blink.cmp", enabled = false },
+    { "folke/which-key.nvim", enabled = false },
     { "Saghen/blink.cmp", enabled = false },
     { "MeanderingProgrammer/render-markdown.nvim", enabled = false },
     { "mfussenegger/nvim-lint", enabled = false },
@@ -48,13 +50,79 @@ require("lazy").setup({
     { "folke/trouble.nvim", opts = { use_diagnostic_signs = true } },
     { "folke/snacks.nvim", opts = { scroll = { enabled = false } } },
     {
+      "lewis6991/gitsigns.nvim",
+      config = function()
+        require("gitsigns").setup({
+          on_attach = function(bufnr)
+            local gitsigns = require('gitsigns')
+
+            local function map(mode, l, r, opts)
+              opts = opts or {}
+              opts.buffer = bufnr
+              vim.keymap.set(mode, l, r, opts)
+            end
+
+            -- Navigation
+            map('n', ']h', function()
+              if vim.wo.diff then
+                vim.cmd.normal({']c', bang = true})
+              else
+                gitsigns.nav_hunk('next')
+              end
+            end)
+
+            map('n', '[h', function()
+              if vim.wo.diff then
+                vim.cmd.normal({'[c', bang = true})
+              else
+                gitsigns.nav_hunk('prev')
+              end
+            end)
+
+            -- Actions
+            map('n', '<leader>hs', gitsigns.stage_hunk)
+            map('n', '<leader>hr', gitsigns.reset_hunk)
+            map('v', '<leader>hs', function() gitsigns.stage_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
+            map('v', '<leader>hr', function() gitsigns.reset_hunk {vim.fn.line('.'), vim.fn.line('v')} end)
+            map('n', '<leader>hS', gitsigns.stage_buffer)
+            map('n', '<leader>hu', gitsigns.undo_stage_hunk)
+            map('n', '<leader>hR', gitsigns.reset_buffer)
+            map('n', '<leader>hp', gitsigns.preview_hunk)
+            map('n', '<leader>hb', function() gitsigns.blame_line{full=true} end)
+            map('n', '<leader>tb', gitsigns.toggle_current_line_blame)
+            map('n', '<leader>hd', gitsigns.diffthis)
+            map('n', '<leader>hD', function() gitsigns.diffthis('~') end)
+            map('n', '<leader>td', gitsigns.toggle_deleted)
+
+            -- Text object
+            map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+          end
+        })
+      end,
+    },
+    {
       "LazyVim/LazyVim",
       opts = {
         colorscheme = "github_dark_default",
         background = "dark",
       },
     },
-
+    {
+      "nvim-lualine/lualine.nvim",
+      opts = {
+        sections = {
+          -- Remove colors for status line
+          lualine_a = { { 'mode', color = { fg = '#ffffff', bg = '#282c34' } } },
+          lualine_b = { { 'branch', color = { fg = '#ffffff', bg = '#282c34' } } },
+          lualine_c = { { 'filename', color = { fg = '#ffffff', bg = '#282c34' } } },
+          lualine_x = { { 'encoding', color = { fg = '#ffffff', bg = '#282c34' } },
+            { 'fileformat', color = { fg = '#ffffff', bg = '#282c34' } },
+            { 'filetype', color = { fg = '#ffffff', bg = '#282c34' } } },
+          lualine_y = { { 'progress', color = { fg = '#ffffff', bg = '#282c34' } } },
+          lualine_z = { { 'location', color = { fg = '#ffffff', bg = '#282c34' } } },
+        },
+      },
+    },
     {
       "simrat39/symbols-outline.nvim",
       cmd = "SymbolsOutline",
@@ -256,6 +324,30 @@ require("lazy").setup({
         return opts
       end,
     },
+    {
+      "MagicDuck/grug-far.nvim",
+      opts = { headerMaxWidth = 80 },
+      keys = {
+        {
+          "\\\\\\",
+          function()
+            local grug = require("grug-far")
+            local ext = vim.bo.buftype == "" and vim.fn.expand("%:e")
+            grug.open({
+              transient = true,
+              prefills = {
+                filesFilter = ext and ext ~= "" and "*." .. ext or nil,
+              },
+            })
+          end,
+          mode = { "n", "v" },
+          desc = "Search and Replace",
+        },
+      },
+      config = function()
+        require("grug-far").setup()
+      end,
+    },
   },
   defaults = {
     lazy = false,
@@ -381,7 +473,6 @@ vim.keymap.set('n', 'tm', ':tabmove<CR>', { noremap = true, silent = true })
 
 -- vimrc local
 -- Resize windows with <Leader> shortcuts
-vim.api.nvim_set_keymap("n", "<Leader>-", ":vertical resize +5<CR>", { noremap = true, silent = true }) -- Increase width of vertical split
 vim.api.nvim_set_keymap("n", "<Leader>=", ":vertical resize -5<CR>", { noremap = true, silent = true }) -- Decrease width of vertical split
 vim.api.nvim_set_keymap("n", "<Leader>k", ":horizontal resize +5<CR>", { noremap = true, silent = true }) -- Increase height of horizontal split
 vim.api.nvim_set_keymap("n", "<Leader>j", ":horizontal resize -5<CR>", { noremap = true, silent = true }) -- Decrease height of horizontal split
@@ -395,11 +486,13 @@ vim.api.nvim_set_keymap("n", ",cl", [[:let @*=expand("%:p")<CR>]], { noremap = t
 
 -- Delete mapping that appears to be created asynchronously after the init is loaded
 local autocmd_id
-autocmnd_id = vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+autocmnd_id = vim.api.nvim_create_autocmd({ "CursorMoved" }, {
   callback = function()
     if vim.fn.mapcheck("<M-k>", "v") ~= "" then
       pcall(vim.keymap.del, { "i", "n", "v" }, "<M-k>")
       pcall(vim.keymap.del, { "i", "n", "v" }, "<M-j>")
+      pcall(vim.keymap.del, { "n" }, "<Leader>-")
+      vim.keymap.set("n", "<Leader>-", ":vertical resize +5<CR>", { desc = "vertical resize", remap = true })
     else
       if autocmd_id then
         vim.api.nvim_del_autocmd(autocmd_id)
@@ -407,3 +500,37 @@ autocmnd_id = vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
     end
   end,
 })
+
+
+-- _G.toggle_which_key = function()
+--   -- Iterate through all registered plugins to find the correct one
+--   local plugin_name = "which-key.nvim"
+--   local plugin = nil
+--   for _, p in pairs(lazy.plugins()) do
+--     if p.name == plugin_name or p.url == plugin_name then
+--       plugin = p
+--       break
+--     end
+--   end
+--
+--   if plugin then
+--     if plugin.loaded then
+--       lazy.disable(plugin.name)
+--       print("Disabled " .. plugin.name)
+--     else
+--       lazy.enable(plugin.name)
+--       print("Enabled " .. plugin.name)
+--     end
+--     lazy.reload()
+--   else
+--     print("Plugin not found: " .. plugin_name)
+--   end
+-- end
+--
+-- -- Map a key for toggling which-key
+-- vim.api.nvim_set_keymap(
+--   "n",
+--   "<leader>tw", -- Shortcut key (customize if needed)
+--   ":lua toggle_which_key()<CR>",
+--   { noremap = true, silent = true }
+-- )
