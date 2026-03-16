@@ -24,6 +24,7 @@ lazy.setup({
     { import = "lazyvim.plugins.extras.lang.json" },
     { import = "lazyvim.plugins.extras.lang.markdown" },
     { import = "lazyvim.plugins.extras.lang.ruby" },
+    { import = "lazyvim.plugins.extras.lang.python" },
     { import = "lazyvim.plugins.extras.lang.terraform" },
     { import = "lazyvim.plugins.extras.lang.go" },
     { import = "lazyvim.plugins.extras.lang.yaml" },
@@ -44,7 +45,8 @@ lazy.setup({
     { "tpope/vim-repeat" }, -- Easily surround text with delimiters
     { "tpope/vim-surround" }, -- Delimiters
     { "tpope/vim-abolish" }, -- Multi-cursor editing
-    { "mg979/vim-visual-multi", branch = "master" }, -- Markdown-style table editing
+    -- { "jake-stewart/multicursor.nvim", branch = "1.0" }, -- Markdown-style table editing
+    -- { "mg979/vim-visual-multi", branch = "master" }, -- Markdown-style table editing
     { "dhruvasagar/vim-table-mode" }, -- Easily split and join lines
     { "AndrewRadev/splitjoin.vim" },
     { "folke/trouble.nvim", opts = { use_diagnostic_signs = true } },
@@ -291,7 +293,26 @@ lazy.setup({
         opts.servers = {
           -- Ensure mason installs the server
           omnisharp = {},
+          pyright = {},
+          rubocop = {
+            cmd = { "bundle", "exec", "rubocop", "--lsp" },
+            root_dir = require("lspconfig.util").root_pattern(".rubocop.yml", ".git"),
+          },
+          ruby_lsp = {
+            cmd = { "bundle", "exec", "ruby-lsp" }, -- Use bundler to run ruby-lsp
+          },
           marksman = false,
+					ts_ls = {
+            cmd_env = {
+              NODE_OPTIONS = "--max-old-space-size=8192",
+            },
+            cmd = {
+              "node",
+              "--max-old-space-size=12192",
+              vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server",
+              "--stdio",
+            },
+          },
           vtsls = false,
           ltex = {          -- Optional: Disable ltex for Markdown
             enabled = false,
@@ -320,6 +341,15 @@ lazy.setup({
             end)
             return false
           end,
+          -- tsserver = function(_, config)
+          --   config.cmd = {
+          --     "node",
+          --     "--max-old-space-size=8192",
+          --     vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server/node_modules/.bin/typescript-language-server",
+          --     "--stdio",
+          --   }
+          --   return true
+          -- end,
         }
         return opts
       end,
@@ -500,6 +530,37 @@ autocmnd_id = vim.api.nvim_create_autocmd({ "CursorMoved" }, {
     end
   end,
 })
+vim.keymap.set("n", "<C-n>", function()
+  if vim.fn.expand("<cword>") == "" then return end
+
+  -- set search to word under cursor, land on "current" match
+  vim.cmd("normal! *N")
+
+  -- feed cgn so Neovim handles operator-pending correctly
+  local keys = vim.api.nvim_replace_termcodes("cgn", true, false, true)
+  vim.api.nvim_feedkeys(keys, "n", false)
+end, { desc = "Change current word occurrence (cgn)", silent = true })
+
+vim.keymap.set("v", "<C-n>", function()
+  -- yank visual selection
+  vim.cmd("normal! y")
+
+  local text = vim.fn.getreg('"')
+  if text == "" then return end
+
+  -- escape for literal search
+  local escaped = vim.fn.escape(text, "\\/.*$^~[]")
+
+  -- set search register to literal text (not word-bound)
+  vim.fn.setreg("/", escaped)
+
+  -- jump to first occurrence at/after cursor
+  -- vim.cmd("normal! n")
+
+  -- feed cgn (reliable operator behavior)
+  local keys = vim.api.nvim_replace_termcodes("cgn", true, false, true)
+  vim.api.nvim_feedkeys(keys, "n", false)
+end, { desc = "cgn visual selection", silent = true })
 
 
 -- _G.toggle_which_key = function()

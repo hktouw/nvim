@@ -78,6 +78,13 @@ CMD+Shift+enter open copilot
 CMD+Shift+[ cycle through terminal windows
 CMD+Enter open copilot autocomplete
 
+Cursor
+Cmd+b toggle side bar
+Cmd + I open chat
+Cmd + K	Ask AI to explain, edit, or refactor code selected code
+Cmd + /	Ask AI about selected code highlighted
+
+
 
 
 Gmail
@@ -133,18 +140,35 @@ s - search without moving
 <leader>l - read health of lazyvim
 :LazyExtra - read health of extras
 :Mason - read health of lsps
+:LspInfo - read health of lsps
+:LspRestart - restart lsp
+:LspStart - start lsp
+:LspStop - stop lsp
 
 https://github.com/lewis6991/gitsigns.nvim
+<leader>hr - reset hunk
+<leader>td - toggle deleted diff
 <leader>hp - preview hunk
 <leader>hs - toggle stage hunk
 <leader>hd - diff
-<leader>td - toggle deleted diff
 <leader>hb - show blame on line
 
 
 
 grugfar
 <leader>sr - grug far search and replace
+<localleader>r - execute replace
+localleader = \
+
+
+worktrunk
+
+wt switch branch-name --create
+wt list --full
+
+
+
+
 ```
 
 ## 12/24/2024 practice
@@ -177,6 +201,17 @@ s - search without moving
 <leader>td - toggle deleted diff
 <leader>hb - show blame on line
 <leader>sr - grug far search and replace
+<leader>ca - quick fix
+<leader>hs - toggle stage hunk
+shift + k = get type information
+za - Toggle fold (collapse/expand current block)
+zc - Close (collapse) fold
+zo - Open (expand) fold
+zC - Close all nested folds under the cursor
+zO - Open all nested folds under the cursor
+zM - Close all folds in the file
+zR - Open all folds in the file
+GB master:% - open current file on master branch. Highlight lines for visual mode
 ```
 
 
